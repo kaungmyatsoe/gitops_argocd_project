@@ -7,7 +7,7 @@ pipeline{
         DOCKERHUB_USERNAME = "kaungmyatsoe"
         APP_NAME = "gitops-argo-app"
         IMAGE_TAG = "${BUILD_NUMBER}"
-        IMAGE_NAME = "${DOCKERHUB_USERNAM}" + "/" + "${APP_NAME}"
+        IMAGE_NAME = "${DOCKERHUB_USERNAME}" + "/" + "${APP_NAME}"
         REGISTRY_CREDS = 'dockerhub'
     }
 
@@ -53,6 +53,27 @@ pipeline{
                         docker_image.push("$BUILD_NUMBER")
                         docker_image.push('latest')
                     }
+                }
+            }
+        }
+        stage('Delete Docer Images'){
+            
+            steps{
+                script{
+
+                    sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker rmi ${IMAGE_NAME}:latest"
+                }
+            }
+        }
+        stage('Updating kubernetes deployment file'){
+            steps{
+                script{
+                    sh """
+                    cat deployment.yml
+                    sed -i 's/${APP_NAME}.*/${APP_NAME}:${IMAGE_TAG}/g' deployment.yml
+                    cat deployment.yml
+                    """
                 }
             }
         }    
