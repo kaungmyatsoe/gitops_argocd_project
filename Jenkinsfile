@@ -33,5 +33,28 @@ pipeline{
                 }
             }
         }
+        stage('Build Docker Image'){
+            steps{
+                script{
+
+                    // Dynamically construct the image name
+                    def IMAGE_NAME = "${DOCKERHUB_USERNAME}/${APP_NAME}:${IMAGE_TAG}"
+
+                    // Build the Docker image
+                    docker_image = docker.build(IMAGE_NAME)
+                }
+            }
+        }
+        stage('Push Docer Image'){
+            steps{
+                script{
+
+                    docker.withRegistry('',REGISTRY_CREDS){
+                        docker_image.push("$BUILD_NUMBER")
+                        docker_image.push('latest')
+                    }
+                }
+            }
+        }    
     }
 }
